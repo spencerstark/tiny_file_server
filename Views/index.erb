@@ -1,0 +1,20 @@
+<!-- index.erb -->
+<head>
+	<script src="index_app/index.js"></script>
+</head>
+<% if false%>
+<!-- 
+we're splitting our code. This may look complicated, but 
+realistically we're just splitting the layout and index
+logically based on what we would want to see where. 
+
+The index appears in the yield on the layout. 
+The layout has our scripts and style and starts the Angular app.
+This might not be the right way to do it but I'm exploring right now. 
+if false is an easy way to comment out a large block of code.  
+-->
+<% end %>
+	<div ng-controller="greetingController">
+		{{greeting}}
+	</div>
+	<my-first-directive></my-first-directive>
