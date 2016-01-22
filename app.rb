@@ -57,8 +57,8 @@ get '/files' do
 	
 
 	all_files_hash = Hash.new
-	app_directory = File.dirname(__FILE__)
-	my_directory = File.dirname(__FILE__) + '/public/sample_directory'
+	app_directory = File.dirname(__FILE__) + '/public/'
+	my_directory = app_directory + 'sample_directory'
 # we need to establish the parent directory to make sure that it is what we think it is. 
 	if !(File.ftype(my_directory) == "directory")
 		puts "Error! Given address is not a directory!"
@@ -76,17 +76,42 @@ get '/files' do
 					# we'll want to find the parent(s) of the directory, see if it exists or not, chances are it doesn't exist. 
 					# I'll do a check on this later and not add it if it's redudndant, however I think Find.find prevents redundancies
 					tmp_var_for_hash = File.basename(file)
-					all_files_hash[File.expand_path("..", file).split('/')[-1]].merge!( tmp_var_for_hash: 'files' ) #File.basename(file) = nil)
+					puts "we're in a checkloop for if hash has base key."
 					# binding.pry
+					# I don't think we really need this, honestly. 
 				end
 				puts all_files_hash
 			else
 				if !(get_all_keys(all_files_hash).include?(File.expand_path("..", file).split('/'[-1]).last))
 					# we seem to end up in this loop a lot. I'm going to keep adding logic to it until it works well or someone helps me find a solution that makes sense 
-					puts "oh shit!"
+					puts "pay attention!!"
 					tmp_hash_for_merge = {File.expand_path("..", file).split('/'[-1]).last => nil}
-					binding.pry
-					all_files_hash[File.expand_path("..", file).split('/')[-2]].merge!tmp_hash_for_merge
+					# binding.pry
+					# all_files_hash[File.expand_path("..", file).split('/')[-2]].merge!tmp_hash_for_merge
+					# 
+					# The following block of code actually works. we'll wan't to apply it to the rest of our structure here and actually find the right parent to put the child with. 
+					# 
+					tmp_hold_my_file = file
+					tmp_hold_my_file.slice! app_directory
+					tmp_array = tmp_hold_my_file.split('/')
+					tmp_array.each_with_index do |parent, index|
+						if index == 0
+					    	puts all_files_hash.has_key?(parent)
+					    	# binding.pry
+					  	else   
+					  		# binding.pry
+					    	case all_files_hash[tmp_array[index-1]].has_key?(parent)
+					    	when false
+					    			# puts all_files_hash[tmp_array[index-1]]
+					    			all_files_hash[tmp_array[index-1]].merge!tmp_hash_for_merge
+					    			break
+				    		else
+				    			puts all_files_hash.has_key?(parent)
+				    		end
+						end  
+					end  
+
+
 				elsif 	
 					tmp_var_to_merge_into_hash = {
 						File.basename(file) => {
