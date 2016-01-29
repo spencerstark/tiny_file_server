@@ -1,7 +1,19 @@
 var indexApp = angular.module('indexApp',[]);
 
-indexApp.controller('greetingController', ['$scope', function($scope){
+indexApp.controller('greetingController', ['$scope', '$http', '$location', function($scope, $http, $location){
+	$scope.dataObject = {};
 	$scope.greeting = "hello";
+	console.log($location);
+	$http.get('http://localhost:4567/files').then(getDataSuccess, getDataError);
+
+	function getDataSuccess(responseObject) {
+		console.log(responseObject);
+		$scope.dataObject = responseObject;
+	}
+
+	function getDataError(responseObject) {
+		console.error("getData request error:", responseObject);
+	}
 }])
 
 indexApp.directive('myFirstDirective', function(){

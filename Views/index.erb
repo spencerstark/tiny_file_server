@@ -16,5 +16,19 @@ if false is an easy way to comment out a large block of code.
 <% end %>
 	<div ng-controller="greetingController">
 		{{greeting}}
+	
+	<script type="text/ng-template" id="tree_item_renderer.html">
+		{{fileNameKey}}
+		<ul>
+		    <li ng-if='fileNameKey !== "files"' ng-repeat="(fileNameKey, object) in object">
+		      <div ng-if='fileNameKey !== "files"' ng-include="'tree_item_renderer.html'"></div>
+		    </li>
+		</ul>
+        <li ng-if='fileNameKey !== "files"' ng-repeat='fileName in object.files'>{{fileName}}</li>
+	</script>
+
+    <li ng-if='fileNameKey !== "files"' ng-repeat="(fileNameKey, object) in dataObject.data" ng-include="'tree_item_renderer.html'"></li>
+
+
 	</div>
 	<my-first-directive></my-first-directive>
