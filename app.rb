@@ -44,113 +44,65 @@ hash = { :directory =>
 
 	hash.to_json
 
-end
-
-# Things that work
-
-# hash = Hash.new
-#  hash[:parent_directory] = nil
-#  hash[:parent_directory] = {:file_name => "test.junk"}
-#  hash[:parent_directory].merge!(nested_directory: nil) 
+end 
 
 get '/files' do
-	
-
 	all_files_hash = Hash.new
 	app_directory = File.dirname(__FILE__) + '/public/'
 	my_directory = app_directory + 'sample_directory'
 # we need to establish the parent directory to make sure that it is what we think it is. 
 	if !(File.ftype(my_directory) == "directory")
 		puts "Error! Given address is not a directory!"
-	else
-		all_files_hash[File.basename(my_directory)] = nil
-		
+	else		
+		tmp_var_to_merge_into_hash = {
+			File.basename(my_directory) => {
+				:file_name => File.basename(my_directory),
+				:file_size => File.size(my_directory),
+				:file_created_time => File.ctime(my_directory),
+			}
+		}
+		all_files_hash["all files hash"] = tmp_var_to_merge_into_hash
+
 		# it looks as though we've got an issue with the file structure not working correctly. Children directory aren't being added to the parent and what not.
-		Find.find(my_directory) do |file|
-			if File.ftype(file) == "directory"
-				puts "we're in the directory loop"
-				puts file.inspect
-				if !(all_files_hash.has_key?(File.basename(file)))
-					# we've only looked to see if the key exists, we will then want to add it to the hash after this. Once that is complete it's time to add files with the same directory. 
-					puts File.expand_path("..", file).split('/')[-1]
-					# we'll want to find the parent(s) of the directory, see if it exists or not, chances are it doesn't exist. 
-					# I'll do a check on this later and not add it if it's redudndant, however I think Find.find prevents redundancies
-					tmp_var_for_hash = File.basename(file)
-					puts "we're in a checkloop for if hash has base key."
-					# binding.pry
-					# I don't think we really need this, honestly. 
-				end
-				puts all_files_hash
-			else
-				if !(get_all_keys(all_files_hash).include?(File.expand_path("..", file).split('/'[-1]).last))
-					# we seem to end up in this loop a lot. I'm going to keep adding logic to it until it works well or someone helps me find a solution that makes sense 
-					puts "pay attention!!"
-					tmp_hash_for_merge = {File.expand_path("..", file).split('/'[-1]).last => nil}
-					# binding.pry
-					# all_files_hash[File.expand_path("..", file).split('/')[-2]].merge!tmp_hash_for_merge
-					# 
-					# The following block of code actually works. we'll wan't to apply it to the rest of our structure here and actually find the right parent to put the child with. 
-					# 
-					tmp_hold_my_file = file
-					tmp_hold_my_file.slice! app_directory
-					tmp_array = tmp_hold_my_file.split('/')
-					tmp_array.each_with_index do |parent, index|
-						if index == 0
-					    	puts all_files_hash.has_key?(parent)
-					    	# binding.pry
-					  	else   
-					  		# binding.pry
-					    	case all_files_hash[tmp_array[index-1]].has_key?(parent)
-					    	when false
-					    			# puts all_files_hash[tmp_array[index-1]]
-					    			all_files_hash[tmp_array[index-1]].merge!tmp_hash_for_merge
-					    			break
-				    		else
-				    			puts all_files_hash.has_key?(parent)
-				    		end
-						end  
-					end  
-
-
-				elsif 	
-					tmp_var_to_merge_into_hash = {
-						File.basename(file) => {
-							:file_name => File.basename(file),
-							:file_size => File.size(file),
-							:file_created_time => File.ctime(file),
-						}
+		Find.find(my_directory) do |file|	
+			tmp_hash_for_merge = {File.expand_path("..", file).split('/'[-1]).last => nil}
+			# The following block of code actually works. we'll wan't to apply it to the rest of our structure here and actually find the right parent to put the child with. 
+			# We need to find out what we're in, then act accordingly. 
+			tmp_var_to_merge_into_hash = {
+					File.basename(file) => {
+						:file_name => File.basename(file),
+						:file_size => File.size(file),
+						:file_created_time => File.ctime(file),
 					}
-					if all_files_hash[File.expand_path("..", file).split('/')[-1]] == nil
-						all_files_hash[File.expand_path("..", file).split('/')[-1]] = tmp_var_to_merge_into_hash
-						# binding.pry
-					else 
-						all_files_hash[File.expand_path("..", file).split('/')[-1]].merge!tmp_var_to_merge_into_hash
-					end
-				end
-			end
+				}
+			tmp_hold_my_file = file
+			tmp_hold_my_file.slice! app_directory
+			tmp_array = tmp_hold_my_file.split('/')
+			tmp_array.each_with_index do |parent, index|
+				if index == 0
+			    	puts all_files_hash.has_key?(parent)
+			    	# We're here on the very first directory, which should be the same as my_directory
+			  	elsif all_files_hash["all files hash"][tmp_array[index-1]] == nil
+			  		# binding.pry
+			  		tmp_im_out_of_patience = tmp_array[index-1]
+			  		all_files_hash["all files hash"][tmp_im_out_of_patience].merge!tmp_var_to_merge_into_hash
+			  	else  			    	
+			  		# This is breaking because we can't test for keys on an empty array. 
+			    	case all_files_hash["all files hash"][tmp_array[index-1]].has_key?(parent)
+			    	when false
+			    			puts all_files_hash["all files hash"][tmp_array[index-1]]
+			    			binding.pry
+			    			all_files_hash["all files hash"][tmp_array[index-1]].merge!tmp_var_to_merge_into_hash
+							break
+		    		else
+		    			puts all_files_hash.has_key?(parent)
+		    		end
+				end  
+			end  
 		end
 	end
 	all_files_hash.to_json
 end
-
-
-# 			end
-
-# 		puts File.basename(file)
-# 		puts "Type is a " + File.ftype(file)
-# 		puts File.dirname(file)
-# 		print "Size is " 
-# 			print (File.size(file).to_f / 2**20).round(2) 
-# 			puts "mb"
-# 		puts File.ctime(file)
-# 		puts File.stat(file).inspect
-# 		puts "-----------------------------------"
-
-# 		all_files_hash.to_json
-# 		end
-# 	end
-
-# end
 
 not_found do  #<--- if somone access's a route that doesn't exist (error 404), then the following code will be executed
 
