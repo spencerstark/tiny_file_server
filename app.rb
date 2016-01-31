@@ -1,3 +1,7 @@
+require 'bundler'
+Bundler.require
+
+require 'rubygems'
 require 'sinatra'
 require 'shotgun'
 require 'socket'
