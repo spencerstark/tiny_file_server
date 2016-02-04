@@ -46,7 +46,16 @@ get '/files' do
     hash[directory_name] = {files: []}
     Dir.glob(directory_name+'/*') do |file|
       if File.file? file 
-        hash[directory_name][:files] << file 
+        tmp_hash = Hash.new
+        tmp_hash = {
+          :file_address => file.gsub(/.\/Public\//,''),
+          :file_name => File.basename(file),
+          :file_size => File.size(file),
+          :file_created_time => File.ctime(file),
+          :file_type => File.extname(file)
+        }
+
+        hash[directory_name][:files] << tmp_hash 
       else
         hash[directory_name][file] = {files: []}
         #Recurse through the child_directories
